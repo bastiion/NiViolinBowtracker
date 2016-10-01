@@ -1,5 +1,5 @@
 /*
- * qglwidget.h - Widget for displaying opengl...
+ * houghDetection.h - HoughLine Detection with OpenCV...
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -19,39 +19,27 @@
  *
  */
 
-#ifndef QTGLWIDGET_H
-#define QTGLWIDGET_H
+#ifndef HOUGHDETECTION_H
+#define HOUGHDETECTION_H
 
-#include <QtOpenGL/QGLWidget>
-class Kinect;
-class QTimer;
-class OpenCVInterface;
+#include <QtCore/QSize>
+#include <QtCore/QRect>
 
-class QtGLWidget: public QGLWidget
-{
-    Q_OBJECT
+#include <XnOpenNI.h>
+#include "opencv2/opencv.hpp"
+class QImage;
+
+using namespace cv;
+
+class OpenCVInterface {
 public:
-    QtGLWidget(QWidget *_parent);
-
-public slots:
-    void startKinect();
-    void startCapture();
-    void testOpenCV();
-protected:
-    void initializeGL();
-    void paintGL();
-    void paintKinectImage();
-    void paintEvent(QPaintEvent *_event);
-
+    OpenCVInterface();
+    void loadXnImage(XnRGB24Pixel *_input, QSize& _inputSize, QRect _region);
+    QImage* convertToQImage();
+    void findLines();
 private:
-    Kinect* m_kinect;
-    bool m_mayCaptureImage;
-    bool m_mayCaptureDepth;
-    QTimer *m_timer;
-    QImage *m_cameraImage;
-    int m_frameCounter;
-    OpenCVInterface *openCVif;
+    Mat m_cvMat;
+
 };
 
-
-#endif //QTGLWIDGET_H
+#endif //HOUGHDETECTION_H

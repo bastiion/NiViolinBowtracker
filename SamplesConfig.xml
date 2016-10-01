@@ -49,12 +49,12 @@
 				-->
 			</Configuration>
         </Node>
-
-		<!-- Uncomment nodes from here if you need them.
-		<Node type="Audio" />
 		<Node type="User" />
 		<Node type="Hands" />
 		<Node type="Gesture" />
+
+		<!-- Uncomment nodes from here if you need them.
+		<Node type="Audio" />
 		<Node type="Scene" />
 		-->
 	</ProductionNodes>

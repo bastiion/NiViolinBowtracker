@@ -31,11 +31,13 @@ MainWindow::MainWindow()
 
     QPushButton * initKinectBtn = new QPushButton(tr("start kinect"));
     QPushButton * startCaptureKinectBtn = new QPushButton(tr("start Capturing"));
+    QPushButton * openCVTest = new QPushButton(tr("test OpenCV"));
     QVBoxLayout * toolBarLayout = new QVBoxLayout(this);
     QWidget * toolBar = new QWidget(this);
     toolBar->setLayout(toolBarLayout);
     toolBarLayout->addWidget(initKinectBtn);
     toolBarLayout->addWidget(startCaptureKinectBtn);
+    toolBarLayout->addWidget(openCVTest);
 
     QHBoxLayout * mainLayout = new QHBoxLayout(this);
     mainLayout->addWidget(toolBar);
@@ -45,7 +47,9 @@ MainWindow::MainWindow()
     this->setWindowTitle(tr("Kinect View"));
     this->resize(this->sizeHint());
     
-    connect(initKinectBtn, SIGNAL(clicked()), glw, SLOT(startKinect())); 
+    connect(initKinectBtn, SIGNAL(clicked()), glw, SLOT(startKinect()));
+    connect(startCaptureKinectBtn, SIGNAL(clicked()), glw, SLOT(startCapture()));
+    connect(openCVTest, SIGNAL(clicked()), glw, SLOT(testOpenCV()));
 
 }
 

@@ -1,5 +1,5 @@
 /*
- * qglwidget.h - Widget for displaying opengl...
+ * imagehelper.h - OpenCV Operations...
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -19,39 +19,19 @@
  *
  */
 
-#ifndef QTGLWIDGET_H
-#define QTGLWIDGET_H
+#ifndef IMAGEHELPER_H
+#define IMAGEHELPER_H
 
-#include <QtOpenGL/QGLWidget>
-class Kinect;
-class QTimer;
-class OpenCVInterface;
+#include "opencv2/imgproc/imgproc.hpp"
+#include <QtGui/QImage>
 
-class QtGLWidget: public QGLWidget
+class ImageHelper
 {
-    Q_OBJECT
 public:
-    QtGLWidget(QWidget *_parent);
-
-public slots:
-    void startKinect();
-    void startCapture();
-    void testOpenCV();
-protected:
-    void initializeGL();
-    void paintGL();
-    void paintKinectImage();
-    void paintEvent(QPaintEvent *_event);
-
-private:
-    Kinect* m_kinect;
-    bool m_mayCaptureImage;
-    bool m_mayCaptureDepth;
-    QTimer *m_timer;
-    QImage *m_cameraImage;
-    int m_frameCounter;
-    OpenCVInterface *openCVif;
+    ImageHelper(){};
+    static IplImage* convertToIplImage(const QImage& _img);
+    static QImage* convertToQImage(const IplImage* _img);
 };
 
 
-#endif //QTGLWIDGET_H
+#endif

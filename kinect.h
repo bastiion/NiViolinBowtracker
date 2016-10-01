@@ -24,11 +24,16 @@
 
 #define SAMPLE_XML_PATH_LOCAL "SamplesConfig.xml"
 #define MAX_DEPTH 10000
+#define MAX_NUM_USERS 15
 
 #include <QtCore/QObject>
+#include <QtCore/QSize>
+#include <QtCore/QPoint>
+#include <QtGui/QVector3D>
 #include <XnOpenNI.h>
 #include <XnLog.h>
 #include <XnCppWrapper.h>
+class QImage;
 
 using namespace xn;
 
@@ -39,13 +44,19 @@ public:
     Kinect();
     ~Kinect();
     int getDepthBuffer(float** _outBuffer)  {
-        *_outBuffer = m_depthBuffer; 
+        *_outBuffer = m_depthHisto; 
         return MAX_DEPTH;
     };
-    unsigned short* getImageMap(XnRGB24Pixel** _outImage) {
-        *_outImage = m_imageMap;
-        return m_imgSize;
+    QSize getTextureMap(XnRGB24Pixel** _outImage) {
+        *_outImage = m_textureMap;
+        return m_texSize;
     };
+
+    QImage *getCameraQImage();
+    QPoint *getHandPos() {
+        return   m_rightHandP; 
+    };
+
     DepthMetaData* getDepthMetaData() {
         return &m_depthMD;
     };
@@ -53,27 +64,52 @@ public:
         return &m_imageMD;
     };
     void enumerateErrors();
+    void startHandTracking(const XnPoint3D* _pos);
+    void stopHandTracking();
+    void startGestureTracking();
+    void stopGestureTracking();
+
+    void updateHandPosition(const XnPoint3D* _pos);
 
 public slots:
     int startKinectDiscovery();
     int acquireFrame();
-
+    void detectUsers();
+    
 private:
 	Context m_context;
 	ScriptNode m_scriptNode;
 	EnumerationErrors m_errors;
     DepthGenerator m_depth;
     ImageGenerator m_image;
-    bool hasDepthData;
+    UserGenerator m_user;
+    HandsGenerator m_hands;
+    GestureGenerator m_gesture;
+
+    XnCallbackHandle hGestureIntermediateStageCompleted, hGestureProgress, hGestureReadyForNextIntermediateStage;
+
+
     DepthMetaData m_depthMD;
     ImageMetaData m_imageMD;
+    bool hasDepthData;
     bool hasImageData;
+    QSize m_texSize;
+    QPoint *m_rightHandP; 
+    QVector3D *m_rightHandVec; 
+    bool isHandTracking;
     
-    
-    float m_depthBuffer[MAX_DEPTH];
-    XnRGB24Pixel* m_imageMap;
-    unsigned short m_imgSize[2];
+    float m_depthHisto[MAX_DEPTH];
+    XnRGB24Pixel* m_textureMap;
+    QImage *m_qImageMap;
 
+    QString m_startGesture;
+
+
+
+
+//    void XN_CALLBACK_TYPE User_NewUser(xn::UserGenerator& , XnUserID nId, void*);
+//    void XN_CALLBACK_TYPE User_LostUser(xn::UserGenerator& , XnUserID nId, void*);
+//    void XN_CALLBACK_TYPE User_CalibrationComplete(xn::SkeletonCapability& , XnUserID nId, XnCalibrationStatus eStatus, void*);
     bool findNode(XnProductionNodeType type, ProductionNode &node);
 };
 
