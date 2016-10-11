@@ -37,7 +37,7 @@ class QImage;
 
 using namespace xn;
 
-class Kinect: QObject
+class Kinect: public  QObject
 {
     Q_OBJECT
 public:
@@ -53,7 +53,7 @@ public:
     };
 
     QImage *getCameraQImage();
-    QPoint *getHandPos() {
+    QPoint& getHandPos() {
         return   m_rightHandP; 
     };
 
@@ -68,14 +68,23 @@ public:
     void stopHandTracking();
     void startGestureTracking();
     void stopGestureTracking();
+    void sendHandLost();
+    void sendHandDetected();
 
     void updateHandPosition(const XnPoint3D* _pos);
+    
+    bool m_applyDepthFilter;
+    bool isHandTracking;
 
 public slots:
     int startKinectDiscovery();
     int acquireFrame();
     void detectUsers();
-    
+
+signals:
+    void handLost();
+    void handDetected();
+        
 private:
 	Context m_context;
 	ScriptNode m_scriptNode;
@@ -94,9 +103,8 @@ private:
     bool hasDepthData;
     bool hasImageData;
     QSize m_texSize;
-    QPoint *m_rightHandP; 
+    QPoint m_rightHandP; 
     QVector3D *m_rightHandVec; 
-    bool isHandTracking;
     
     float m_depthHisto[MAX_DEPTH];
     XnRGB24Pixel* m_textureMap;

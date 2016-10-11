@@ -24,6 +24,9 @@
 
 #include <QtCore/QSize>
 #include <QtCore/QRect>
+#include <QtCore/QList>
+#include <QtCore/QLine>
+#include <QtCore/QQueue>
 
 #include <XnOpenNI.h>
 #include "opencv2/opencv.hpp"
@@ -31,15 +34,33 @@ class QImage;
 
 using namespace cv;
 
+struct ArcoLine {
+    float radAngle;
+    float degAngle;
+    QLine* line;
+    int length;
+};
+
 class OpenCVInterface {
 public:
     OpenCVInterface();
+    ~OpenCVInterface();
     void loadXnImage(XnRGB24Pixel *_input, QSize& _inputSize, QRect _region);
     QImage* convertToQImage();
     void findLines();
-private:
-    Mat m_cvMat;
+    void restrictBoundingBox(const QRect& _box);
+    QQueue<ArcoLine*>& getArcoHistory();
 
+    int m_treshold;
+    double m_maxLineGap;
+    double m_minLineLength;
+    
+private:
+    QRect m_boundingBox; 
+    Mat m_cvMat;
+    QQueue<ArcoLine*> m_arcoBuffer;
+    int m_maxBufLength;
+   
 };
 
 #endif //HOUGHDETECTION_H

@@ -32,11 +32,19 @@ class QtGLWidget: public QGLWidget
     Q_OBJECT
 public:
     QtGLWidget(QWidget *_parent);
+    ~QtGLWidget();
 
 public slots:
     void startKinect();
     void startCapture();
     void testOpenCV();
+    void setHoughTreshold(int _treshold);
+    void setMaxLineGap(double _gap);
+    void setMinLineLength(double _length);
+    void toggleDepthFilter(int _state);
+    void demandGesture();
+    void setTrackingOn();
+
 protected:
     void initializeGL();
     void paintGL();
@@ -51,6 +59,7 @@ private:
     QImage *m_cameraImage;
     int m_frameCounter;
     OpenCVInterface *openCVif;
+    bool m_isTrackingHand;
 };
 
 

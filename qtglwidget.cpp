@@ -30,9 +30,14 @@ QtGLWidget::QtGLWidget(QWidget *_parent): QGLWidget(_parent),
     m_mayCaptureImage(false),
     m_mayCaptureDepth(false),
     m_cameraImage(NULL),
-    m_frameCounter(0)
+    m_frameCounter(0),
+    m_isTrackingHand(false)
+
 {
    m_kinect = new Kinect(); 
+   connect(m_kinect, SIGNAL(handLost()), this, SLOT(demandGesture()));
+   connect(m_kinect, SIGNAL(handDetected()), this, SLOT((setTrackingOn())));
+
    setMinimumSize(QSize(640, 480));
    m_timer = new QTimer(this);
    connect(m_timer, SIGNAL(timeout()), this, SLOT(repaint()));
@@ -40,10 +45,30 @@ QtGLWidget::QtGLWidget(QWidget *_parent): QGLWidget(_parent),
    openCVif = new OpenCVInterface();
 }
 
+QtGLWidget::~QtGLWidget()
+{
+    // m_timer->stop();
+    // delete m_timer;
+    // delete openCVif;
+    // delete m_kinect;
+}
+
 void QtGLWidget::startCapture()
 {
     m_timer->start(1000/20);
 }
+
+void QtGLWidget::demandGesture()
+{
+    m_isTrackingHand = false;
+}
+
+void QtGLWidget::setTrackingOn()
+{
+    m_isTrackingHand = true;
+}
+
+
 
 void QtGLWidget::initializeGL()
 {
@@ -56,16 +81,35 @@ void QtGLWidget::initializeGL()
 }
 
 void QtGLWidget::paintEvent(QPaintEvent *_event) {
-    m_frameCounter++;
+    //m_frameCounter++;
     if(m_kinect->acquireFrame() != XN_STATUS_OK) return;
     //delete m_cameraImage;
     m_cameraImage = m_kinect->getCameraQImage();
+    ArcoLine* arco = NULL; 
+    
+    if(!openCVif->getArcoHistory().isEmpty()) {
+        arco = openCVif->getArcoHistory().last();
+    }
     QPainter painter;
+    QPen bowPen(Qt::red);
+    bowPen.setWidth(5);
     painter.begin(this);
     if(m_cameraImage != NULL) {
         painter.drawImage(0,0,*m_cameraImage);
+        if(arco != NULL) {
+            painter.setPen(Qt::yellow);
+            painter.drawEllipse(QRect((m_kinect->getHandPos()), QSize(10,10)));
+            painter.setPen(bowPen);
+            painter.drawLine(* arco->line);
+        }
         painter.setPen(Qt::yellow);
-        painter.drawEllipse(QRect(*(m_kinect->getHandPos()), QSize(10,10)));
+        painter.setFont(QFont("Helvetica", 14));
+        if(!m_kinect->isHandTracking) {
+            painter.drawText(QPoint(50,50), tr("Please raise your bow-hand to detect your hand"));
+        } else {
+            painter.drawText(QPoint(50,50), tr("Hand Detected"));
+        }
+
         testOpenCV();
     }
     painter.end();
@@ -182,9 +226,43 @@ void QtGLWidget::startKinect() {
 }
 
 void QtGLWidget::testOpenCV() {
+    int boundingWidth = 300,
+        boundingHeight = 270;
     XnRGB24Pixel* pImageRef = NULL;
     QSize imgSize = m_kinect->getTextureMap(&pImageRef);
     openCVif->loadXnImage(pImageRef, imgSize, QRect(0,0, 640,480));
+    QPoint topLeft(0,0);
+    QPoint bottomRight = QPoint(m_kinect->getHandPos());
+    
+    bottomRight.setX(bottomRight.x() + 10);
+    bottomRight.setY(bottomRight.y() + 50);
+
+
+    int boundingLeft = m_kinect->getHandPos().x() - boundingWidth,
+        boundingTop = m_kinect->getHandPos().y() - boundingHeight;
+    if(boundingLeft > 0) topLeft.setX(boundingLeft);
+    if(boundingTop > 0) topLeft.setY(boundingTop);
+
+    openCVif->restrictBoundingBox(QRect(topLeft, bottomRight));
     openCVif->findLines();
 }
+
+void QtGLWidget::setHoughTreshold(int _treshold)
+{
+    openCVif->m_treshold = _treshold;
+}
+void QtGLWidget::setMaxLineGap(double _gap)
+{
+    openCVif->m_maxLineGap = _gap;
+}
+void QtGLWidget::setMinLineLength(double _length)
+{
+    openCVif->m_minLineLength = _length;
+}
+
+void QtGLWidget::toggleDepthFilter(int _state)
+{
+    m_kinect->m_applyDepthFilter = _state == Qt::Checked;
+}
+
 

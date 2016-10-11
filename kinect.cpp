@@ -37,10 +37,10 @@ Kinect::Kinect():
     hasImageData(false),
     m_qImageMap(NULL),
     m_startGesture("RaiseHand"),
-    isHandTracking(false)
+    isHandTracking(false),
+    m_applyDepthFilter(true)
 {
     m_texSize = QSize();
-    m_rightHandP = new QPoint();
     m_rightHandVec = new QVector3D();
 }
 
@@ -48,7 +48,6 @@ Kinect::~Kinect()
 {
    delete m_textureMap;
    delete m_rightHandVec;
-   delete m_rightHandP;
    // delete[] m_depthHisto;
    //m_user.Release();
    m_depth.Release();
@@ -105,6 +104,7 @@ void XN_CALLBACK_TYPE Gesture_Recognized(xn::GestureGenerator& _gc, const XnChar
     Kinect* _this = castCookie(_cookie);
     _this->stopGestureTracking();
     _this->startHandTracking(_pos);
+    _this->sendHandDetected();
 
 }
 
@@ -125,6 +125,7 @@ void XN_CALLBACK_TYPE Hands_Destroy2(HandsGenerator& _hg, XnUserID _user, XnFloa
     Kinect* _this = castCookie(_cookie);
     _this->stopHandTracking();
     _this->startGestureTracking();
+    _this->sendHandLost();
 
 }
 
@@ -142,13 +143,23 @@ void Kinect::stopHandTracking()
     //m_hands.StopTrackingAll();
 }
 
+void Kinect::sendHandLost()
+{
+    emit handLost();
+}
+void Kinect::sendHandDetected()
+{
+    emit handDetected();
+}
+
+
 void Kinect::startGestureTracking()
 {
-       m_gesture.AddGesture(m_startGesture.toLatin1(), NULL);
+    m_gesture.AddGesture(m_startGesture.toLatin1(), NULL);
 
-       m_gesture.RegisterToGestureIntermediateStageCompleted(Gesture_IntermediateStageComplete, this, hGestureIntermediateStageCompleted);
-       m_gesture.RegisterToGestureReadyForNextIntermediateStage(Gesture_ReadyForNextIntermediateStage, this, hGestureReadyForNextIntermediateStage);
-       m_gesture.RegisterGestureCallbacks(Gesture_Recognized, Gesture_Progress, this, hGestureProgress);
+    m_gesture.RegisterToGestureIntermediateStageCompleted(Gesture_IntermediateStageComplete, this, hGestureIntermediateStageCompleted);
+    m_gesture.RegisterToGestureReadyForNextIntermediateStage(Gesture_ReadyForNextIntermediateStage, this, hGestureReadyForNextIntermediateStage);
+    m_gesture.RegisterGestureCallbacks(Gesture_Recognized, Gesture_Progress, this, hGestureProgress);
        
 
 }
@@ -239,6 +250,7 @@ int Kinect::startKinectDiscovery()
     } else {
         XnCallbackHandle handHandle;
         m_hands.SetSmoothing(0.1);
+       
         m_hands.RegisterHandCallbacks(Hands_Create2, Hands_Update2, Hands_Destroy2, this, handHandle);
     }
 
@@ -318,7 +330,7 @@ int Kinect::acquireFrame()
 			{
 				*pTex = *pImage;
                 XnDepthPixel depth = m_depthMD(x,y);
-                if(!isHandTracking || qAbs(m_rightHandVec->z() - depth) < 50) {
+                if(!m_applyDepthFilter || !isHandTracking || qAbs(m_rightHandVec->z() - depth) < 50) {
                     m_qImageMap->setPixel( x, y, 
                         QColor::fromRgb(pImage->nRed,pImage->nGreen,pImage->nBlue,255).rgba() );
                 } else {
@@ -342,8 +354,8 @@ void Kinect::updateHandPosition(const XnPoint3D* _pos)
 {
     XnPoint3D handPosProj = {};
     m_depth.ConvertRealWorldToProjective(1, _pos, &handPosProj);
-    delete m_rightHandP;
-    m_rightHandP = new QPoint(handPosProj.X, handPosProj.Y);
+    m_rightHandP.setX(handPosProj.X);
+    m_rightHandP.setY(handPosProj.Y);
     m_rightHandVec->setX(handPosProj.X);
     m_rightHandVec->setY(handPosProj.Y);
     m_rightHandVec->setZ(handPosProj.Z);
@@ -369,7 +381,8 @@ void Kinect::detectUsers() {
         handPosRW.Y = handJoint.position.position.Y; 
         handPosRW.Z = handJoint.position.position.Z;
         m_depth.ConvertRealWorldToProjective(1, &handPosRW, &handPosPj);
-        m_rightHandP = new QPoint(handPosPj.X, handPosPj.Y);
+        m_rightHandP.setX(handPosPj.X);
+        m_rightHandP.setY(handPosPj.Y);
         //    printf("user %d: hand at (x %6.2f  y %6.2f z %6.2f)\n",aUsers[i],
                                                             // handJoint.position.position.X,
                                                             // handJoint.position.position.Y,
