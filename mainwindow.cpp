@@ -54,6 +54,10 @@ MainWindow::MainWindow()
     QDoubleSpinBox * minLineLengthSpin = new QDoubleSpinBox;
     minLineLengthSpin->setRange(0.0, 100.0);
     minLineLengthSpin->setValue(80.0);
+    QLabel * toggleDebugCannyLbl = new QLabel(tr("enable Canny Edge Window"));
+    QCheckBox * toggleDebugCannyChk = new QCheckBox();
+    QLabel * toggleDebugHoughLbl = new QLabel(tr("enable Hough Edge Window"));
+    QCheckBox * toggleDebugHoughChk = new QCheckBox();
 
     QGridLayout * houghGroupLayout = new QGridLayout(this);
     QGroupBox * houghSettingGroup = new QGroupBox(tr("Hough Lines Settings"));
@@ -64,6 +68,10 @@ MainWindow::MainWindow()
     houghGroupLayout->addWidget(maxLineGapSpin, 1, 1);
     houghGroupLayout->addWidget(minLineLengthLabel, 2, 0);
     houghGroupLayout->addWidget(minLineLengthSpin, 2, 1);
+    houghGroupLayout->addWidget(toggleDebugCannyLbl, 3, 0);
+    houghGroupLayout->addWidget(toggleDebugCannyChk, 3, 1);
+    houghGroupLayout->addWidget(toggleDebugHoughLbl, 4, 0);
+    houghGroupLayout->addWidget(toggleDebugHoughChk, 4, 1);
     
     QLabel * depthFilterLabel = new QLabel(tr("Filter hand depth"));
     QCheckBox * depthFilterChk = new QCheckBox();
@@ -99,6 +107,8 @@ MainWindow::MainWindow()
     connect(houghThresholdSpin, SIGNAL(valueChanged(int)), glw, SLOT(setHoughTreshold(int)));
     connect(maxLineGapSpin, SIGNAL(valueChanged(double)), glw, SLOT(setMaxLineGap(double)));
     connect(minLineLengthSpin, SIGNAL(valueChanged(double)), glw, SLOT(setMinLineLength(double)));
+    connect(toggleDebugCannyChk, SIGNAL(stateChanged(int)), glw, SLOT(toggleDebugCanny(int)));
+    connect(toggleDebugHoughChk, SIGNAL(stateChanged(int)), glw, SLOT(toggleDebugHough(int)));
 
     connect(depthFilterChk, SIGNAL(stateChanged(int)), glw, SLOT(toggleDepthFilter(int)));
 

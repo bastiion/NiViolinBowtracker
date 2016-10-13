@@ -265,4 +265,12 @@ void QtGLWidget::toggleDepthFilter(int _state)
     m_kinect->m_applyDepthFilter = _state == Qt::Checked;
 }
 
+void QtGLWidget::toggleDebugCanny(int _state)
+{
+    openCVif->m_debugCanny = _state == Qt::Checked;
+}
 
+void QtGLWidget::toggleDebugHough(int _state)
+{
+    openCVif->m_debugHough = _state == Qt::Checked;
+}

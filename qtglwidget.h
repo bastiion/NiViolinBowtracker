@@ -44,6 +44,8 @@ public slots:
     void toggleDepthFilter(int _state);
     void demandGesture();
     void setTrackingOn();
+    void toggleDebugCanny(int _state);
+    void toggleDebugHough(int _state);
 
 protected:
     void initializeGL();

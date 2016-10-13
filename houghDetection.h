@@ -54,12 +54,15 @@ public:
     int m_treshold;
     double m_maxLineGap;
     double m_minLineLength;
+    bool m_debugCanny;
+    bool m_debugHough;
     
 private:
     QRect m_boundingBox; 
     Mat m_cvMat;
     QQueue<ArcoLine*> m_arcoBuffer;
     int m_maxBufLength;
+    
    
 };
 

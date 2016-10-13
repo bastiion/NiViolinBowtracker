@@ -34,8 +34,9 @@ OpenCVInterface::OpenCVInterface():
     m_treshold(100),
     m_maxLineGap(20.0),
     m_minLineLength(80.0),
-    m_maxBufLength(100)
-
+    m_maxBufLength(100),
+    m_debugCanny(false),
+    m_debugHough(false)
 {
 
 
@@ -73,7 +74,7 @@ void OpenCVInterface::findLines() {
         qDebug() << "Sorry exception in Canny caught: " << e.what();
         return;
     }
-    //imshow("canny", cvCanMat);
+    if(m_debugCanny) imshow("canny", cvCanMat);
 
     // next we try to find all straight lines using a hough transformation
     /* HoughLinesP(
@@ -88,13 +89,15 @@ void OpenCVInterface::findLines() {
     std::vector<Vec4i> lines;
     HoughLinesP( cvCanMat, lines, 1, CV_PI/180, 100, 80, 20);
 
-    // draw the bounding box in which the Arco is beeing expected
-    rectangle( m_cvMat, Point(m_boundingBox.left(), m_boundingBox.top()), Point(m_boundingBox.right(), m_boundingBox.bottom()), Scalar(0,255,255), 1, 8);
-    char strLeft[10], strRight[10];
-    // sprintf(strLeft, "%d x %d", m_boundingBox.left(), m_boundingBox.top());
-    sprintf(strRight, "%d x %d", m_boundingBox.right(), m_boundingBox.bottom());
-    // putText( m_cvMat, strLeft,  Point(m_boundingBox.left(), m_boundingBox.top()), FONT_HERSHEY_SIMPLEX, 1.0, Scalar(0,255,255));
-    putText( m_cvMat, strRight,  Point(m_boundingBox.right(), m_boundingBox.bottom()), FONT_HERSHEY_SIMPLEX, 1.0, Scalar(0,255,255));
+    if(m_debugHough) {
+        // draw the bounding box in which the Arco is beeing expected
+        rectangle( m_cvMat, Point(m_boundingBox.left(), m_boundingBox.top()), Point(m_boundingBox.right(), m_boundingBox.bottom()), Scalar(0,255,255), 1, 8);
+        char strLeft[10], strRight[10];
+        sprintf(strLeft, "%d x %d", m_boundingBox.left(), m_boundingBox.top());
+        sprintf(strRight, "%d x %d", m_boundingBox.right(), m_boundingBox.bottom());
+        putText( m_cvMat, strLeft,  Point(m_boundingBox.left(), m_boundingBox.top()), FONT_HERSHEY_SIMPLEX, 1.0, Scalar(0,255,255));
+        putText( m_cvMat, strRight,  Point(m_boundingBox.right(), m_boundingBox.bottom()), FONT_HERSHEY_SIMPLEX, 1.0, Scalar(0,255,255));
+    }
 
 
 
@@ -104,18 +107,16 @@ void OpenCVInterface::findLines() {
     {
         
         QLine* _line = new QLine(lines[i][0] + m_boundingBox.left(), lines[i][1] + m_boundingBox.top(), lines[i][2] + m_boundingBox.left(), lines[i][3] + m_boundingBox.top());
-        // if(_line.x1() > m_boundingBox.left() && _line.x1() < m_boundingBox.right() && _line.y1() > m_boundingBox.top() && _line.y1() < m_boundingBox.bottom()  &&
-        //     _line.x2() > m_boundingBox.left() && _line.x2() < m_boundingBox.right() && _line.y2() > m_boundingBox.top() && _line.y2() < m_boundingBox.bottom()) {
-            int distanceToHand = QVector2D(_line->x2() - m_boundingBox.right(), _line->y2() - m_boundingBox.bottom()).length();
-            if(closestLine == NULL || distanceToHand < minDistanceToHand) {
-                closestLine = _line;
-                minDistanceToHand = distanceToHand;
-            } else {
-                delete _line;
-            }
-            //line( m_cvMat, Point(_line.x1(), _line.y1()), Point(_line.x2(), _line.y2()), Scalar(60,200,255), 1, 8 );
-            //m_Lines.append(_line);
-        // }
+        if(m_debugHough) {// DEBUGGING IMAGE
+            line( m_cvMat, Point(_line->x1(), _line->y1()), Point(_line->x2(), _line->y2()), Scalar(60,200,255), 1, 8 );
+        }
+        int distanceToHand = QVector2D(_line->x2() - m_boundingBox.right(), _line->y2() - m_boundingBox.bottom()).length();
+        if(closestLine == NULL || distanceToHand < minDistanceToHand) {
+            closestLine = _line;
+            minDistanceToHand = distanceToHand;
+        } else {
+            delete _line;
+        }
     }
 
     if(closestLine != NULL) {
@@ -124,8 +125,13 @@ void OpenCVInterface::findLines() {
         QVector2D horizontal(-1,0);
         qreal angle = qAcos(QVector2D::dotProduct(horizontal, vec)/(horizontal.length() * vec.length()));
         int degAngle = qFloor(angle * (180.0f/CV_PI));
-        putText( m_cvMat, QString::number(degAngle).toLatin1().data(),  Point(_line.x1(), _line.y1()), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(0,0,255));
-        line( m_cvMat, Point(_line.x1(), _line.y1()), Point(_line.x2(), _line.y2()), Scalar(0,0,255), 3, 8 );
+
+            putText( m_cvMat, QString::number(degAngle).toLatin1().data(),  Point(_line.x1(), _line.y1()), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(0,0,255));
+            line( m_cvMat, Point(_line.x1(), _line.y1()), Point(_line.x2(), _line.y2()), Scalar(0,0,255), 3, 8 );
+        if(m_debugHough) { // DEBUGGING IMAGE
+            putText( m_cvMat, QString::number(degAngle).toLatin1().data(),  Point(_line.x1(), _line.y1()), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(0,0,255));
+            line( m_cvMat, Point(_line.x1(), _line.y1()), Point(_line.x2(), _line.y2()), Scalar(0,0,255), 3, 8 );
+        }
 
         ArcoLine * arco = new ArcoLine();
         arco->length = vec.length();
@@ -137,7 +143,7 @@ void OpenCVInterface::findLines() {
             delete m_arcoBuffer.dequeue();
         }
     }
-    //imshow("lines", m_cvMat);
+    if(m_debugHough) imshow("lines", m_cvMat);
 }
 
 QImage* OpenCVInterface::convertToQImage()

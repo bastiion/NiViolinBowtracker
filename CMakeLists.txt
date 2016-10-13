@@ -21,6 +21,13 @@ else()
   pkg_check_modules(PC_OPENNI QUIET openni-dev)
 endif()
 
+SET(QMIDI_DIR "thirdparty/QMidi/src/")
+SET(QMIDI_SRC   ${QMIDI_DIR}/QMidiFile.cpp 
+                ${QMIDI_DIR}/QMidiOut.cpp 
+                ${QMIDI_DIR}/OS/QMidi_ALSA.cpp 
+                )
+include_directories(${QMIDI_DIR})
+
 SET(QT_USE_QTOPENGL TRUE)
 SET(QT_MIN_VERSION "4.6.0" COMPONENTS QtCore QtGui QtXml QtNetwork QtOpenGL)
 FIND_PACKAGE(Qt4 REQUIRED)
@@ -88,7 +95,10 @@ set(BOWTRACKER_SRCS
     qtglwidget.cpp
     imagehelper.cpp
     kinect.cpp
-    houghDetection.cpp)
+    houghDetection.cpp
+    midisink.cpp
+    ${QMIDI_SRC}
+    )
 
 set(BOWTRACKER_MOC_SRC
     mainwindow.h
