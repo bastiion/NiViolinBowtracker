@@ -62,6 +62,8 @@ MainWindow::MainWindow()
     QCheckBox * toggleDebugCannyChk = new QCheckBox();
     QLabel * toggleDebugHoughLbl = new QLabel(tr("enable Hough Edge Window"));
     QCheckBox * toggleDebugHoughChk = new QCheckBox();
+    QLabel * toggleMeanAverageLbl = new QLabel(tr("use mean instead of average \n velocity calculation"));
+    QCheckBox * toggleMeanAverageChk = new QCheckBox();
 
     QGridLayout * houghGroupLayout = new QGridLayout(this);
     QGroupBox * houghSettingGroup = new QGroupBox(tr("Hough Lines Settings"));
@@ -76,6 +78,8 @@ MainWindow::MainWindow()
     houghGroupLayout->addWidget(toggleDebugCannyChk, 3, 1);
     houghGroupLayout->addWidget(toggleDebugHoughLbl, 4, 0);
     houghGroupLayout->addWidget(toggleDebugHoughChk, 4, 1);
+    houghGroupLayout->addWidget(toggleMeanAverageLbl, 5, 0);
+    houghGroupLayout->addWidget(toggleMeanAverageChk, 5, 1);
     
     QLabel * depthFilterLabel = new QLabel(tr("Filter hand depth"));
     QCheckBox * depthFilterChk = new QCheckBox();

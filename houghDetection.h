@@ -27,6 +27,7 @@
 #include <QtCore/QList>
 #include <QtCore/QLine>
 #include <QtCore/QQueue>
+#include <QtCore/QTime>
 
 #include <XnOpenNI.h>
 #include "opencv2/opencv.hpp"
@@ -34,11 +35,14 @@ class QImage;
 
 using namespace cv;
 
-struct ArcoLine {
+class ArcoLine {
+public:
+    ArcoLine();
     float radAngle;
     float degAngle;
     QLine* line;
     int length;
+    QTime timestamp;
 };
 
 class OpenCVInterface {

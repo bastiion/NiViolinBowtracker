@@ -22,12 +22,19 @@
 #include "houghDetection.h"
 #include <string.h>
 #include <stdio.h>
+#include <chrono>
+
 #include <QtCore/QDebug>
 #include <QtCore/qmath.h>
 #include <QtGui/QImage>
 #include <QtGui/QVector2D>
 
 #define PI 3.141592653589793238462f
+
+ArcoLine::ArcoLine():
+    timestamp(QTime::currentTime())
+{
+}
 
 
 OpenCVInterface::OpenCVInterface():

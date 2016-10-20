@@ -23,9 +23,20 @@
 #define QTGLWIDGET_H
 
 #include <QtOpenGL/QGLWidget>
+#include <QtCore/QQueue>
+#include <QtCore/QTime>
+
 class Kinect;
 class QTimer;
 class OpenCVInterface;
+
+class ArcoVelocity {
+    public:
+        ArcoVelocity(float _velo, float _acc);
+        float velocityPixPerMS;
+        float accelerationPixPerMS2;
+        QTime timestamp;
+};
 
 class QtGLWidget: public QGLWidget
 {
@@ -46,6 +57,13 @@ public slots:
     void setTrackingOn();
     void toggleDebugCanny(int _state);
     void toggleDebugHough(int _state);
+    void toggleMeanAverage(int _state);
+    
+signals:
+    void upBowStart(int velocity, int acceleration);
+    void downBowStart(int velocity, int acceleration);
+    void bowStop();
+    void angleChange(int angle);
 
 protected:
     void initializeGL();
@@ -57,12 +75,20 @@ private:
     Kinect* m_kinect;
     bool m_mayCaptureImage;
     bool m_mayCaptureDepth;
+    bool m_useMeanVelocity;
     QTimer *m_timer;
     QImage *m_cameraImage;
     int m_frameCounter;
     OpenCVInterface *openCVif;
     bool m_isTrackingHand;
     bool calculateArcoProperties();
+    
+    //some thresholds
+    int m_maxVelocityBufLength;
+    float m_velocityStopThreshold;
+
+
+    QQueue<ArcoVelocity*> velocityHistory;
 };
 
 

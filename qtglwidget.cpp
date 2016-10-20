@@ -25,15 +25,27 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QTimer>
+#include <QtCore/QList>
 #include <QtGui/QVector2D>
+
+
+ArcoVelocity::ArcoVelocity(float _velo = 0.0f, float _acc = 0.0f):
+    timestamp(QTime::currentTime()),
+    velocityPixPerMS(_velo),
+    accelerationPixPerMS2(_acc)
+{
+}
 
 QtGLWidget::QtGLWidget(QWidget *_parent): QGLWidget(_parent),
     m_mayCaptureImage(false),
     m_mayCaptureDepth(false),
     m_cameraImage(NULL),
     m_frameCounter(0),
-    m_isTrackingHand(false)
-
+    m_isTrackingHand(false),
+    m_useMeanVelocity(true),
+    m_maxVelocityBufLength(100),
+    m_velocityStopThreshold(0.5)
+                           
 {
    m_kinect = new Kinect(); 
    connect(m_kinect, SIGNAL(handLost()), this, SLOT(demandGesture()));
@@ -110,6 +122,11 @@ void QtGLWidget::paintEvent(QPaintEvent *_event) {
         } else {
             painter.drawText(QPoint(50,50), tr("Hand Detected"));
         }
+        if(!velocityHistory.isEmpty()) {
+            painter.drawText(QPoint(50,80), tr("Bow Speed: ") + velocityHistory.head()->velocityPixPerMS + tr(" px/ms"));
+            painter.drawText(QPoint(50,100), tr("Bow Accelaration: ") + velocityHistory.head()->accelerationPixPerMS2 + tr(" px/m²"));
+        }
+        
 
         testOpenCV();
     }
@@ -125,12 +142,47 @@ bool QtGLWidget::calculateArcoProperties()
     if(size < 3)
         return false;
     int num = size > 10 ? 10 : size;
+    QList<float> velocityPixPerMSList;
+    float velocityPixPerMSSum  = 0.0f;
+    
     for(int i = num-1;i >= 1; i--) {
         ArcoLine* arco = arcBuf.at(i);
         ArcoLine* arcoNext = arcBuf.at(i-1);
         QVector2D movementVector(arcoNext->line->x2() - arco->line->x2(), arcoNext->line->y2() - arco->line->y2());
-        float mvntLength = movementVector.length();
+        float mvmtLength = movementVector.length();
+        const int durationMS = arcoNext->timestamp.msecsTo(arco->timestamp);
+        const float velocityPixPerMS = ((float)mvmtLength)/durationMS;
+        velocityPixPerMSList += velocityPixPerMS;
+        velocityPixPerMSSum + velocityPixPerMS;
     }
+    float averageVelocityPixPerMS = 0.0f;
+    if(m_useMeanVelocity) {
+        qSort(velocityPixPerMSList.begin(), velocityPixPerMSList.end());
+        averageVelocityPixPerMS = velocityPixPerMSList[qRound(velocityPixPerMSList.length()/2.0f)];
+    } else {
+        averageVelocityPixPerMS = velocityPixPerMSSum/ velocityPixPerMSList.length();
+    }
+
+    // if there are already velocity values, calculate the accelaration
+    if(!velocityHistory.isEmpty()) {
+        ArcoVelocity* lastVelo = velocityHistory.head();
+        ArcoVelocity* newVelo = new ArcoVelocity(averageVelocityPixPerMS);
+        velocityHistory.enqueue(newVelo);
+        newVelo->accelerationPixPerMS2 = (averageVelocityPixPerMS - velocityHistory.head()->velocityPixPerMS) / (float) lastVelo->timestamp.msecsTo(newVelo->timestamp);
+    } else {
+        velocityHistory.enqueue(new ArcoVelocity(averageVelocityPixPerMS));
+    }
+    if(velocityHistory.length() > m_maxVelocityBufLength) {
+        delete velocityHistory.dequeue();
+    }
+
+
+    //now that we have all data, lets see, whether we ned to emit some signals
+
+   
+
+    return true;
+
 }
 
 void QtGLWidget::paintGL()
@@ -250,3 +302,9 @@ void QtGLWidget::toggleDebugHough(int _state)
 {
     openCVif->m_debugHough = _state == Qt::Checked;
 }
+
+void QtGLWidget::toggleMeanAverage(int _state)
+{
+    m_useMeanVelocity = _state == Qt::Checked;
+}
+

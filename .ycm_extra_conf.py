@@ -34,8 +34,10 @@ import os
 import ycm_core
 
 flags = [
+    '-Wall',
+    '-std=c++11',
     '-x',
-    'gnu++11',
+    'c++',
     '-DQT_CORE_LIB',
     '-DQT_GUI_LIB',
     '-DQT_NO_DEBUG',
@@ -60,7 +62,7 @@ flags = [
 #
 # Most projects will NOT need to set this to anything; you can just change the
 # 'flags' list of compilation flags. Notice that YCM itself uses that approach.
-compilation_database_folder = ''
+compilation_database_folder = '.'
 
 if os.path.exists( compilation_database_folder ):
   database = ycm_core.CompilationDatabase( compilation_database_folder )
