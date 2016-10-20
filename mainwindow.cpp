@@ -64,6 +64,7 @@ MainWindow::MainWindow()
     QCheckBox * toggleDebugHoughChk = new QCheckBox();
     QLabel * toggleMeanAverageLbl = new QLabel(tr("use mean instead of average \n velocity calculation"));
     QCheckBox * toggleMeanAverageChk = new QCheckBox();
+    toggleMeanAverageChk->setCheckState(Qt::Checked);
 
     QGridLayout * houghGroupLayout = new QGridLayout(this);
     QGroupBox * houghSettingGroup = new QGroupBox(tr("Hough Lines Settings"));
@@ -128,6 +129,7 @@ MainWindow::MainWindow()
     connect(minLineLengthSpin, SIGNAL(valueChanged(double)), glw, SLOT(setMinLineLength(double)));
     connect(toggleDebugCannyChk, SIGNAL(stateChanged(int)), glw, SLOT(toggleDebugCanny(int)));
     connect(toggleDebugHoughChk, SIGNAL(stateChanged(int)), glw, SLOT(toggleDebugHough(int)));
+    connect(toggleMeanAverageChk, SIGNAL(stateChanged(int)), glw, SLOT(toggleMeanAverage(int)));
 
     connect(depthFilterChk, SIGNAL(stateChanged(int)), glw, SLOT(toggleDepthFilter(int)));
 
