@@ -22,11 +22,11 @@ void MidiSink::bow(float acceleration, float speed)
 {
 }
 
-const QMap<QString,QString>& MidiSink::devices()
+const QMap<QString,QString> MidiSink::devices()
 {
     return QMidiOut::devices();
 }
-bool MidiSink::connect(QString& device)
+bool MidiSink::connect(const QString& device)
 {
     m_midi.connect(device);
 }

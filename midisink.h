@@ -30,8 +30,8 @@ public:
     void bowStart(BowDirection _direction) ;
     void bowEnd(BowDirection _direction) ;
     void bow(float acceleration, float speed) ;
-    const QMap<QString,QString>& devices();
-    bool connect(QString& device);
+    const QMap<QString,QString> devices();
+    bool connect(const QString& device);
 private:
     QMidiOut m_midi;
 

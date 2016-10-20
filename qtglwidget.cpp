@@ -25,6 +25,7 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QTimer>
+#include <QtGui/QVector2D>
 
 QtGLWidget::QtGLWidget(QWidget *_parent): QGLWidget(_parent),
     m_mayCaptureImage(false),
@@ -115,6 +116,22 @@ void QtGLWidget::paintEvent(QPaintEvent *_event) {
     painter.end();
 
 }
+bool QtGLWidget::calculateArcoProperties()
+{
+
+
+    QQueue<ArcoLine*>& arcBuf = openCVif->getArcoHistory();
+    int size = arcBuf.size();
+    if(size < 3)
+        return false;
+    int num = size > 10 ? 10 : size;
+    for(int i = num-1;i >= 1; i--) {
+        ArcoLine* arco = arcBuf.at(i);
+        ArcoLine* arcoNext = arcBuf.at(i-1);
+        QVector2D movementVector(arcoNext->line->x2() - arco->line->x2(), arcoNext->line->y2() - arco->line->y2());
+        float mvntLength = movementVector.length();
+    }
+}
 
 void QtGLWidget::paintGL()
 {
@@ -131,47 +148,6 @@ void QtGLWidget::paintGL()
     
     glPopMatrix();
 
-    glPushMatrix();
-        glBegin(GL_POLYGON);
-
-                //     This is the top face
-                glVertex3f(0.0f, 0.0f, 0.0f);
-                glVertex3f(0.0f, 0.0f, -1.0f);
-                glVertex3f(-1.0f, 0.0f, -1.0f);
-                glVertex3f(-1.0f, 0.0f, 0.0f);
-
-                //      This is the front face
-                glVertex3f(0.0f, 0.0f, 0.0f);
-                glVertex3f(-1.0f, 0.0f, 0.0f);
-                glVertex3f(-1.0f, -1.0f, 0.0f);
-                glVertex3f(0.0f, -1.0f, 0.0f);
-
-                //      This is the right face
-                glVertex3f(0.0f, 0.0f, 0.0f);
-                glVertex3f(0.0f, -1.0f, 0.0f);
-                glVertex3f(0.0f, -1.0f, -1.0f);
-                glVertex3f(0.0f, 0.0f, -1.0f);
-
-                //      This is the left face
-                glVertex3f(-1.0f, 0.0f, 0.0f);
-                glVertex3f(-1.0f, 0.0f, -1.0f);
-                glVertex3f(-1.0f, -1.0f, -1.0f);
-                glVertex3f(-1.0f, -1.0f, 0.0f);
-
-                //      This is the bottom face
-                glVertex3f(0.0f, 0.0f, 0.0f);
-                glVertex3f(0.0f, -1.0f, -1.0f);
-                glVertex3f(-1.0f, -1.0f, -1.0f);
-                glVertex3f(-1.0f, -1.0f, 0.0f);
-
-                //      This is the back face
-                glVertex3f(0.0f, 0.0f, 0.0f);
-                glVertex3f(-1.0f, 0.0f, -1.0f);
-                glVertex3f(-1.0f, -1.0f, -1.0f);
-                glVertex3f(0.0f, -1.0f, -1.0f);
-
-            glEnd();
-        glPopMatrix();
         */
 }
 

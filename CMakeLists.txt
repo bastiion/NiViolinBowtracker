@@ -39,24 +39,24 @@ include_directories(${OPENGL_INCLUDE_DIR})
 FIND_PACKAGE( OpenCV REQUIRED )
 FIND_PACKAGE( ALSA REQUIRED )
 if(ALSA_FOUND)
-    include_directories(${ALSA_INCLUDE_DIRS})
-    link_directories(${ALSA_LIBRARY})
-    add_definitions(${ALSA_DEFINITIONS})
+include_directories(${ALSA_INCLUDE_DIRS})
+link_directories(${ALSA_LIBRARY})
+add_definitions(${ALSA_DEFINITIONS})
 endif()
 
 set(OPENNI_DEFINITIONS ${PC_OPENNI_CFLAGS_OTHER})
- 
+
 #add a hint so that it can find it without the pkg-config
 find_path(OPENNI_INCLUDE_DIR XnStatus.h
-          HINTS ${NESTK_ROOT_DIRS_HINTS} ${PC_OPENNI_INCLUDEDIR} ${PC_OPENNI_INCLUDE_DIRS} /usr/include/openni /usr/include/ni
-          PATHS "$ENV{PROGRAMFILES}/OpenNI/Include" "$ENV{PROGRAMW6432}/OpenNI/Include"
-          PATH_SUFFIXES openni)
+      HINTS ${NESTK_ROOT_DIRS_HINTS} ${PC_OPENNI_INCLUDEDIR} ${PC_OPENNI_INCLUDE_DIRS} /usr/include/openni /usr/include/ni
+      PATHS "$ENV{PROGRAMFILES}/OpenNI/Include" "$ENV{PROGRAMW6432}/OpenNI/Include"
+      PATH_SUFFIXES openni)
 #add a hint so that it can find it without the pkg-config
 find_library(OPENNI_LIBRARY
-             NAMES OpenNI64 OpenNI
-             HINTS ${NESTK_ROOT_DIRS_HINTS} ${PC_OPENNI_LIBDIR} ${PC_OPENNI_LIBRARY_DIRS} /usr/lib
-             PATHS "$ENV{PROGRAMFILES}/OpenNI/Lib${OPENNI_SUFFIX}" "$ENV{PROGRAMW6432}/OpenNI/Lib${OPENNI_SUFFIX}"
-             PATH_SUFFIXES lib
+         NAMES OpenNI64 OpenNI
+         HINTS ${NESTK_ROOT_DIRS_HINTS} ${PC_OPENNI_LIBDIR} ${PC_OPENNI_LIBRARY_DIRS} /usr/lib
+         PATHS "$ENV{PROGRAMFILES}/OpenNI/Lib${OPENNI_SUFFIX}" "$ENV{PROGRAMW6432}/OpenNI/Lib${OPENNI_SUFFIX}"
+         PATH_SUFFIXES lib
 )
 find_library(NITE_LIBRARY
              NAMES XnVNite XnVNITE_1_3_1 XnVNITE_1_4_0 XnVNite_1_4_2 XnVNite_1_5_2
@@ -113,7 +113,7 @@ set(BOWTRACKER_MOC_SRC
     )
  
 QT4_WRAP_CPP(BOWTRACKER_MOC ${BOWTRACKER_MOC_SRC})
-add_compile_options (-std=c++0x)
+add_compile_options (-std=gnu++11)
 add_executable (bowtracker ${BOWTRACKER_SRCS} ${BOWTRACKER_MOC}) 
 add_executable (reader reader.cpp)
 target_link_libraries (bowtracker ${OPENNI_LIBRARY} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${ALSA_LIBRARIES})

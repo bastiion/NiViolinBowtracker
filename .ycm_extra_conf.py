@@ -35,7 +35,7 @@ import ycm_core
 
 flags = [
     '-x',
-    'c++',
+    'gnu++11',
     '-DQT_CORE_LIB',
     '-DQT_GUI_LIB',
     '-DQT_NO_DEBUG',

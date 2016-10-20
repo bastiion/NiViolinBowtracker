@@ -62,6 +62,7 @@ private:
     int m_frameCounter;
     OpenCVInterface *openCVif;
     bool m_isTrackingHand;
+    bool calculateArcoProperties();
 };
 
 

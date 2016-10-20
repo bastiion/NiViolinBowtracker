@@ -24,6 +24,10 @@
 
 #include <QtGui/QWidget>
 #include "qtglwidget.h"
+#include "midisink.h"
+
+class QListWidget;
+class QListWidgetItem;
 
 class MainWindow: public QWidget
 {
@@ -33,6 +37,14 @@ public:
 
 private:
         QtGLWidget *glw;
+        MidiSink * m_midiSink;
+
+        QListWidget * midiConnectionListW;
+public slots:
+        void refreshMidiConnections();
+        void connectMidi(QListWidgetItem* item);
+
+        
 
 
 };

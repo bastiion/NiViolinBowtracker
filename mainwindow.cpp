@@ -29,12 +29,16 @@
 #include <QtGui/QDoubleSpinBox>
 #include <QtGui/QPushButton>
 #include <QtGui/QCheckBox>
+#include <QtGui/QListWidget>
+#include <QtGui/QListWidgetItem>
 
+#include <QtCore/QDebug>
 #include "mainwindow.h"
 
 MainWindow::MainWindow()
 {
     glw = new QtGLWidget(this);
+    m_midiSink = new MidiSink();
 
     QPushButton * initKinectBtn = new QPushButton(tr("start kinect"));
     QPushButton * startCaptureKinectBtn = new QPushButton(tr("start Capturing"));
@@ -83,6 +87,16 @@ MainWindow::MainWindow()
     kinectGroupLayout->addWidget(depthFilterLabel, 0 , 0);
     kinectGroupLayout->addWidget(depthFilterChk, 0 , 1);
 
+    QPushButton * midiConnectionRefreshBtn = new QPushButton(tr("refresh"));
+    midiConnectionListW = new QListWidget(this);
+    refreshMidiConnections();
+
+    QVBoxLayout * midiGroupLayout = new QVBoxLayout(this);
+    QGroupBox * midiGroup = new QGroupBox(tr("Midi Connection"));
+    midiGroup->setLayout(midiGroupLayout);
+    midiGroupLayout->addWidget(midiConnectionRefreshBtn);
+    midiGroupLayout->addWidget(midiConnectionListW);
+
     QVBoxLayout * toolBarLayout = new QVBoxLayout(this);
     QWidget * toolBar = new QWidget(this);
     toolBar->setLayout(toolBarLayout);
@@ -91,6 +105,7 @@ MainWindow::MainWindow()
     toolBarLayout->addWidget(openCVTest);
     toolBarLayout->addWidget(houghSettingGroup);
     toolBarLayout->addWidget(kinectSettingGroup);
+    toolBarLayout->addWidget(midiGroup);
 
     QHBoxLayout * mainLayout = new QHBoxLayout(this);
     mainLayout->addWidget(toolBar);
@@ -112,8 +127,37 @@ MainWindow::MainWindow()
 
     connect(depthFilterChk, SIGNAL(stateChanged(int)), glw, SLOT(toggleDepthFilter(int)));
 
+    connect(midiConnectionRefreshBtn, SIGNAL(clicked()), this, SLOT(refreshMidiConnections()));
+    connect(midiConnectionListW, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(connectMidi(QListWidgetItem*)));
+
 }
 
+void MainWindow::connectMidi(QListWidgetItem* item)
+{
+    const QString device = item->data(Qt::UserRole).toString();
+    m_midiSink->connect(device);
+    qDebug() << device;
+}
+
+
+void MainWindow::refreshMidiConnections()
+{
+    while(midiConnectionListW->count() > 0) {
+        QListWidgetItem * item = midiConnectionListW->takeItem(0);
+        delete item;
+    }
+    int row = 0;
+    const QMap<QString,QString>& devices = m_midiSink->devices();
+    for(auto midiConnection: devices.keys()) {
+        row++;
+        QListWidgetItem * midiConnItem = new QListWidgetItem;
+        midiConnItem->setText(devices.value(midiConnection));
+        midiConnItem->setData(Qt::UserRole, QVariant( midiConnection));
+        midiConnectionListW->insertItem(row,midiConnItem);
+        
+    }
+
+}
 
 
 
