@@ -30,10 +30,11 @@ public:
     void bowStart(BowDirection _direction) ;
     void bowEnd(BowDirection _direction) ;
     void bow(float acceleration, float speed) ;
-    const QMap& devices;
+    const QMap<QString,QString>& devices();
+    bool connect(QString& device);
 private:
     QMidiOut m_midi;
 
-}
+};
 
 #endif //MIDISINK_H

@@ -24,15 +24,14 @@ public:
     enum BowDirection {
         UpBow,
         DownBow
-    }
-    ControlSink() = 0;
+    };
+    ControlSink() {};
     void bowStart(BowDirection _direction) {};
     void bowEnd(BowDirection _direction) {};
     void bow(float acceleration, float speed) {};
 
 
 
-}
-
+};
 
 #endif

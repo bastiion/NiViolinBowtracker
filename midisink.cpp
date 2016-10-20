@@ -1,9 +1,9 @@
 #include "midisink.h"
 
-MidiSink::MidiSink():
+MidiSink::MidiSink()
 {
 
-    QMap<QString, QString> vals = QMidiOut::devices();
+     //QMap<QString, QString> vals = QMidiOut::devices();
     // if(vals.length() > 0) {
     //     m_midi.connect(/* one of the keys (IDs) from `devices()` */);
     // }
@@ -20,5 +20,14 @@ void MidiSink::bowEnd(BowDirection _direction)
 
 void MidiSink::bow(float acceleration, float speed) 
 {
+}
+
+const QMap<QString,QString>& MidiSink::devices()
+{
+    return QMidiOut::devices();
+}
+bool MidiSink::connect(QString& device)
+{
+    m_midi.connect(device);
 }
 

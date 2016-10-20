@@ -37,6 +37,12 @@ find_package( OpenGL REQUIRED )
 include_directories(${OPENGL_INCLUDE_DIR})
 
 FIND_PACKAGE( OpenCV REQUIRED )
+FIND_PACKAGE( ALSA REQUIRED )
+if(ALSA_FOUND)
+    include_directories(${ALSA_INCLUDE_DIRS})
+    link_directories(${ALSA_LIBRARY})
+    add_definitions(${ALSA_DEFINITIONS})
+endif()
 
 set(OPENNI_DEFINITIONS ${PC_OPENNI_CFLAGS_OTHER})
  
@@ -107,7 +113,8 @@ set(BOWTRACKER_MOC_SRC
     )
  
 QT4_WRAP_CPP(BOWTRACKER_MOC ${BOWTRACKER_MOC_SRC})
+add_compile_options (-std=c++0x)
 add_executable (bowtracker ${BOWTRACKER_SRCS} ${BOWTRACKER_MOC}) 
 add_executable (reader reader.cpp)
-target_link_libraries (bowtracker ${OPENNI_LIBRARY} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries (bowtracker ${OPENNI_LIBRARY} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${ALSA_LIBRARIES})
 target_link_libraries (reader ${OPENNI_LIBRARY})
