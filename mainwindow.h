@@ -44,7 +44,10 @@ public slots:
         void refreshMidiConnections();
         void connectMidi(QListWidgetItem* item);
 
-        
+        void upBowStart(float _velo, float _acc);
+        void downBowStart(float _velo, float _acc);
+        void bowStop();
+        void changeNoteKey(int _angle);
 
 
 };

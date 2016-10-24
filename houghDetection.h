@@ -38,9 +38,11 @@ using namespace cv;
 class ArcoLine {
 public:
     ArcoLine();
+    ~ArcoLine();
     float radAngle;
     float degAngle;
     QLine* line;
+    QPoint* handPos;
     int length;
     QTime timestamp;
 };

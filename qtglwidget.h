@@ -60,8 +60,8 @@ public slots:
     void toggleMeanAverage(int _state);
     
 signals:
-    void upBowStart(int velocity, int acceleration);
-    void downBowStart(int velocity, int acceleration);
+    void upBowStart(float velocity, float acceleration);
+    void downBowStart(float velocity, float acceleration);
     void bowStop();
     void angleChange(int angle);
 
@@ -72,6 +72,11 @@ protected:
     void paintEvent(QPaintEvent *_event);
 
 private:
+    enum BowState {
+        Up,
+        Down,
+        Stop
+    };
     Kinect* m_kinect;
     bool m_mayCaptureImage;
     bool m_mayCaptureDepth;
@@ -81,7 +86,12 @@ private:
     int m_frameCounter;
     OpenCVInterface *openCVif;
     bool m_isTrackingHand;
+    BowState m_bowState;
+    int angle;
+
+    void changeBowState(BowState _state, ArcoVelocity* _velocity);
     bool calculateArcoProperties();
+
     
     //some thresholds
     int m_maxVelocityBufLength;

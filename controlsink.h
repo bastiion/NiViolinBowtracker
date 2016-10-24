@@ -27,7 +27,7 @@ public:
     };
     ControlSink() {};
     void bowStart(BowDirection _direction) {};
-    void bowEnd(BowDirection _direction) {};
+    void bowEnd() {};
     void bow(float acceleration, float speed) {};
 
 

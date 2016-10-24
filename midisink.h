@@ -27,13 +27,18 @@
 class MidiSink: public ControlSink {
 public:
     MidiSink();
+    ~MidiSink();
     void bowStart(BowDirection _direction) ;
-    void bowEnd(BowDirection _direction) ;
+    void bowEnd() ;
     void bow(float acceleration, float speed) ;
     const QMap<QString,QString> devices();
     bool connect(const QString& device);
+    void changeKey(int key);
+
 private:
     QMidiOut m_midi;
+    bool connected;
+    int key;
 
 };
 

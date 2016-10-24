@@ -35,6 +35,11 @@ ArcoLine::ArcoLine():
     timestamp(QTime::currentTime())
 {
 }
+ArcoLine::~ArcoLine()
+{
+    delete line;
+    delete handPos;
+}
 
 
 OpenCVInterface::OpenCVInterface():
@@ -145,6 +150,7 @@ void OpenCVInterface::findLines() {
         arco->radAngle = angle;
         arco->degAngle = angle * (180.0f/CV_PI);
         arco->line = closestLine;
+        arco->handPos = new QPoint(m_boundingBox.right(), m_boundingBox.bottom());
         m_arcoBuffer.enqueue(arco);
         if(m_arcoBuffer.length() > m_maxBufLength) {
             delete m_arcoBuffer.dequeue();

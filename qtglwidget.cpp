@@ -44,7 +44,9 @@ QtGLWidget::QtGLWidget(QWidget *_parent): QGLWidget(_parent),
     m_isTrackingHand(false),
     m_useMeanVelocity(true),
     m_maxVelocityBufLength(100),
-    m_velocityStopThreshold(0.5)
+    m_velocityStopThreshold(0.5),
+    m_bowState(Stop),
+    angle(0)
                            
 {
    m_kinect = new Kinect(); 
@@ -123,8 +125,8 @@ void QtGLWidget::paintEvent(QPaintEvent *_event) {
             painter.drawText(QPoint(50,50), tr("Hand Detected"));
         }
         if(!velocityHistory.isEmpty()) {
-            painter.drawText(QPoint(50,80), tr("Bow Speed: ") + velocityHistory.head()->velocityPixPerMS + tr(" px/ms"));
-            painter.drawText(QPoint(50,100), tr("Bow Accelaration: ") + velocityHistory.head()->accelerationPixPerMS2 + tr(" px/m²"));
+            painter.drawText(QPoint(50,80), tr("Bow Speed: ") + QString::number(velocityHistory.last()->velocityPixPerMS) + tr(" px/ms"));
+            painter.drawText(QPoint(50,100), tr("Bow Accelaration: ") + QString::number(velocityHistory.last()->accelerationPixPerMS2) + tr(" px/m²"));
         }
         
 
@@ -133,23 +135,53 @@ void QtGLWidget::paintEvent(QPaintEvent *_event) {
     painter.end();
 
 }
+
+void QtGLWidget::changeBowState(BowState _state, ArcoVelocity* _velocity)
+{
+    if(_state != m_bowState) {
+        m_bowState = _state;
+        switch(_state) {
+            case Stop:
+                emit bowStop();
+                break;
+            case Up:
+                emit upBowStart(_velocity->velocityPixPerMS, _velocity->accelerationPixPerMS2);
+                break;
+            case Down:
+                emit downBowStart(_velocity->velocityPixPerMS, _velocity->accelerationPixPerMS2);
+                break;
+        }
+    }
+}
+
+
 bool QtGLWidget::calculateArcoProperties()
 {
 
 
     QQueue<ArcoLine*>& arcBuf = openCVif->getArcoHistory();
-    int size = arcBuf.size();
+    int size = arcBuf.count();
     if(size < 3)
         return false;
-    int num = size > 10 ? 10 : size;
+
+    if(qAbs(arcBuf.last()->degAngle - angle) > 1) {
+        emit angleChange(qRound(arcBuf.last()->degAngle));
+    }
+
+    if(arcBuf.last()->timestamp.msecsTo(QTime::currentTime()) > 1000) {
+        changeBowState(Stop, new ArcoVelocity());
+        velocityHistory.clear();
+    }
+    int num = size > 10 ? 10 : size - 1;
     QList<float> velocityPixPerMSList;
     float velocityPixPerMSSum  = 0.0f;
     
-    for(int i = num-1;i >= 1; i--) {
-        ArcoLine* arco = arcBuf.at(i);
-        ArcoLine* arcoNext = arcBuf.at(i-1);
-        QVector2D movementVector(arcoNext->line->x2() - arco->line->x2(), arcoNext->line->y2() - arco->line->y2());
-        float mvmtLength = movementVector.length();
+    for(int i = size - num;i < size; i++) {
+        ArcoLine* arco = arcBuf.at(i-1);
+        ArcoLine* arcoNext = arcBuf.at(i);
+        // QVector2D movementVector(arcoNext->line->x2() - arco->line->x2(), arcoNext->line->y2() - arco->line->y2());
+        QVector2D movementVector(arcoNext->handPos->x() - arco->handPos->x(), arcoNext->handPos->y() - arco->handPos->y());
+        float mvmtLength = (movementVector.x() > 0 ? 1.0f : -1.0f ) * movementVector.length();
         const int durationMS = arcoNext->timestamp.msecsTo(arco->timestamp);
         const float velocityPixPerMS = ((float)mvmtLength)/durationMS;
         velocityPixPerMSList += velocityPixPerMS;
@@ -165,10 +197,10 @@ bool QtGLWidget::calculateArcoProperties()
 
     // if there are already velocity values, calculate the accelaration
     if(!velocityHistory.isEmpty()) {
-        ArcoVelocity* lastVelo = velocityHistory.head();
+        ArcoVelocity* lastVelo = velocityHistory.last();
         ArcoVelocity* newVelo = new ArcoVelocity(averageVelocityPixPerMS);
         velocityHistory.enqueue(newVelo);
-        newVelo->accelerationPixPerMS2 = (averageVelocityPixPerMS - velocityHistory.head()->velocityPixPerMS) / (float) lastVelo->timestamp.msecsTo(newVelo->timestamp);
+        newVelo->accelerationPixPerMS2 = (averageVelocityPixPerMS - velocityHistory.last()->velocityPixPerMS) / (float) lastVelo->timestamp.msecsTo(newVelo->timestamp);
     } else {
         velocityHistory.enqueue(new ArcoVelocity(averageVelocityPixPerMS));
     }
@@ -179,7 +211,17 @@ bool QtGLWidget::calculateArcoProperties()
 
     //now that we have all data, lets see, whether we ned to emit some signals
 
-   
+   if(velocityHistory.count() > 2) {
+       ArcoVelocity* currentVelocity = velocityHistory.last();
+       if(currentVelocity->velocityPixPerMS > 0.05) {
+            changeBowState(Up, currentVelocity);
+       } else if(currentVelocity->velocityPixPerMS < -0.05) {
+            changeBowState(Down, currentVelocity);
+       } else {
+            changeBowState(Stop, currentVelocity);
+       }
+   }
+
 
     return true;
 
@@ -273,6 +315,8 @@ void QtGLWidget::testOpenCV() {
 
     openCVif->restrictBoundingBox(QRect(topLeft, bottomRight));
     openCVif->findLines();
+
+    calculateArcoProperties();
 }
 
 void QtGLWidget::setHoughTreshold(int _treshold)

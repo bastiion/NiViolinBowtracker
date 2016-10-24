@@ -136,6 +136,29 @@ MainWindow::MainWindow()
     connect(midiConnectionRefreshBtn, SIGNAL(clicked()), this, SLOT(refreshMidiConnections()));
     connect(midiConnectionListW, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(connectMidi(QListWidgetItem*)));
 
+
+    connect(glw, SIGNAL(upBowStart(float,float)), this, SLOT(upBowStart(float, float)));
+    connect(glw, SIGNAL(downBowStart(float,float)), this, SLOT(downBowStart(float, float)));
+    connect(glw, SIGNAL(bowStop()), this, SLOT(bowStop()));
+    connect(glw, SIGNAL(angleChange(int)), this, SLOT(changeNoteKey(int)));
+
+}
+void MainWindow::upBowStart(float _velo, float _acc)
+{
+    m_midiSink->bowStart(MidiSink::UpBow);
+}
+void MainWindow::downBowStart(float _velo, float _acc)
+{
+    m_midiSink->bowStart(MidiSink::DownBow);
+}
+void MainWindow::bowStop()
+{
+    m_midiSink->bowEnd();
+}
+void MainWindow::changeNoteKey(int _angle)
+{
+    if(_angle > 0)
+        m_midiSink->changeKey(_angle*10);
 }
 
 void MainWindow::connectMidi(QListWidgetItem* item)
