@@ -3,7 +3,9 @@
 
 MidiSink::MidiSink():
     connected(false),
-    key(60)
+    key(60),
+    velocity(100),
+    isNoteOn(false)
 {
 
      //QMap<QString, QString> vals = QMidiOut::devices();
@@ -20,24 +22,43 @@ MidiSink::~MidiSink()
 void MidiSink::bowStart(BowDirection _direction) 
 {
     qDebug() << "noteOn";
-    if(!connected) return;
-    m_midi.noteOn(key, 0);
+    noteOn(key);
 
+}
+void MidiSink::noteOn(int _key)
+{
+    if(!connected) return;
+    isNoteOn = true;
+    m_midi.noteOn(_key, 0);
 }
 
 void MidiSink::bowEnd() 
 {
     qDebug() << "noteOff";
-    if(!connected) return;
-    m_midi.noteOff(key, 0);
+    noteOff(key);
 }
-void MidiSink::changeKey(int _key)
+void MidiSink::noteOff(int _key)
 {
-    //key = _key;
+    isNoteOn = false;
+    if(!connected) return;
+    m_midi.noteOff(_key, 0);
 }
 
-void MidiSink::bow(float acceleration, float speed) 
+void MidiSink::changeKey(int _key)
 {
+    if(_key == key)
+        return;
+    if(isNoteOn) {
+        noteOff(key);
+        noteOn(_key);
+    }
+    key = _key;
+}
+
+void MidiSink::controlChange(int _num, int _value) 
+{
+    if(!connected) return;
+    m_midi.controlChange(0, _num, _value);
 }
 
 const QMap<QString,QString> MidiSink::devices()

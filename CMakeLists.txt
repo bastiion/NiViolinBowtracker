@@ -26,7 +26,7 @@ SET(QMIDI_SRC   ${QMIDI_DIR}/QMidiFile.cpp
                 ${QMIDI_DIR}/QMidiOut.cpp 
                 ${QMIDI_DIR}/OS/QMidi_ALSA.cpp 
                 )
-include_directories(${QMIDI_DIR})
+include_directories(${QMIDI_DIR} src)
 
 SET(QT_USE_QTOPENGL TRUE)
 SET(QT_MIN_VERSION "4.6.0" COMPONENTS QtCore QtGui QtXml QtNetwork QtOpenGL)
@@ -96,25 +96,23 @@ endif(OPENNI_FOUND)
 #link_directories(${PCL_LIBRARY_DIRS})
 #add_definitions(${PCL_DEFINITIONS})
 set(BOWTRACKER_SRCS
-    main.cpp
-    mainwindow.cpp
-    qtglwidget.cpp
-    imagehelper.cpp
-    kinect.cpp
-    houghDetection.cpp
-    midisink.cpp
+    src/main.cpp
+    src/mainwindow.cpp
+    src/qtglwidget.cpp
+    src/imagehelper.cpp
+    src/kinect.cpp
+    src/houghDetection.cpp
+    src/midisink.cpp
     ${QMIDI_SRC}
     )
 
 set(BOWTRACKER_MOC_SRC
-    mainwindow.h
-    qtglwidget.h
-    kinect.h
+    src/mainwindow.h
+    src/qtglwidget.h
+    src/kinect.h
     )
  
 QT4_WRAP_CPP(BOWTRACKER_MOC ${BOWTRACKER_MOC_SRC})
 add_compile_options (-std=gnu++11)
 add_executable (bowtracker ${BOWTRACKER_SRCS} ${BOWTRACKER_MOC}) 
-add_executable (reader reader.cpp)
 target_link_libraries (bowtracker ${OPENNI_LIBRARY} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${ALSA_LIBRARIES})
-target_link_libraries (reader ${OPENNI_LIBRARY})

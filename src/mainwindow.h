@@ -28,6 +28,7 @@
 
 class QListWidget;
 class QListWidgetItem;
+class QSpinBox;
 
 class MainWindow: public QWidget
 {
@@ -40,6 +41,8 @@ private:
         MidiSink * m_midiSink;
 
         QListWidget * midiConnectionListW;
+        QSpinBox * speedControlerNumSpin;
+        QSpinBox * speedControlerValueSpin;
 public slots:
         void refreshMidiConnections();
         void connectMidi(QListWidgetItem* item);
@@ -48,6 +51,8 @@ public slots:
         void downBowStart(float _velo, float _acc);
         void bowStop();
         void changeNoteKey(int _angle);
+        void changeNoteParameter(float _velo, float _asc);
+        void sendTestControlParameter();
 
 
 };

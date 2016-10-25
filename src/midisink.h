@@ -30,15 +30,19 @@ public:
     ~MidiSink();
     void bowStart(BowDirection _direction) ;
     void bowEnd() ;
-    void bow(float acceleration, float speed) ;
+    void controlChange(int _num, int _value);
     const QMap<QString,QString> devices();
     bool connect(const QString& device);
-    void changeKey(int key);
+    void changeKey(int _key);
 
 private:
     QMidiOut m_midi;
     bool connected;
     int key;
+    int velocity;
+    bool isNoteOn;
+    void noteOff(int _key);
+    void noteOn(int _key);
 
 };
 

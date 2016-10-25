@@ -95,6 +95,24 @@ MainWindow::MainWindow()
     QPushButton * midiConnectionRefreshBtn = new QPushButton(tr("refresh"));
     midiConnectionListW = new QListWidget(this);
     refreshMidiConnections();
+    
+    QLabel * controlerLbl = new QLabel(tr("Bow speed"));
+    speedControlerNumSpin = new QSpinBox;
+    speedControlerNumSpin->setRange(0,127);
+    speedControlerNumSpin->setValue(7);
+    speedControlerValueSpin = new QSpinBox;
+    speedControlerValueSpin->setRange(0,255);
+    speedControlerValueSpin->setValue(0);
+    QPushButton * speedTestSendBtn = new QPushButton(tr("send"));
+
+    QGridLayout * controlerGroupLayout = new QGridLayout(this);
+    QGroupBox * controlerSettingGroup = new QGroupBox(tr("Controler Settings"));
+    controlerSettingGroup->setLayout(controlerGroupLayout);
+    controlerGroupLayout->addWidget(controlerLbl, 0,0);
+    controlerGroupLayout->addWidget(speedControlerNumSpin, 0,1);
+    controlerGroupLayout->addWidget(speedControlerValueSpin, 0,2);
+    controlerGroupLayout->addWidget(speedTestSendBtn, 0,3);
+
 
     QVBoxLayout * midiGroupLayout = new QVBoxLayout(this);
     QGroupBox * midiGroup = new QGroupBox(tr("Midi Connection"));
@@ -110,6 +128,7 @@ MainWindow::MainWindow()
     toolBarLayout->addWidget(openCVTest);
     toolBarLayout->addWidget(houghSettingGroup);
     toolBarLayout->addWidget(kinectSettingGroup);
+    toolBarLayout->addWidget(controlerSettingGroup);
     toolBarLayout->addWidget(midiGroup);
 
     QHBoxLayout * mainLayout = new QHBoxLayout(this);
@@ -134,13 +153,20 @@ MainWindow::MainWindow()
     connect(depthFilterChk, SIGNAL(stateChanged(int)), glw, SLOT(toggleDepthFilter(int)));
 
     connect(midiConnectionRefreshBtn, SIGNAL(clicked()), this, SLOT(refreshMidiConnections()));
+    QSpinBox * speedControlerNumSpin = new QSpinBox;
+    speedControlerNumSpin->setRange(0,127);
+    speedControlerNumSpin->setValue(7);
     connect(midiConnectionListW, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(connectMidi(QListWidgetItem*)));
 
+    connect(speedTestSendBtn, SIGNAL(clicked()), this, SLOT(sendTestControlParameter()));
 
     connect(glw, SIGNAL(upBowStart(float,float)), this, SLOT(upBowStart(float, float)));
     connect(glw, SIGNAL(downBowStart(float,float)), this, SLOT(downBowStart(float, float)));
+    connect(glw, SIGNAL(bowing(float,float)), this, SLOT(changeNoteParameter(float, float)));
     connect(glw, SIGNAL(bowStop()), this, SLOT(bowStop()));
     connect(glw, SIGNAL(angleChange(int)), this, SLOT(changeNoteKey(int)));
+
+   
 
 }
 void MainWindow::upBowStart(float _velo, float _acc)
@@ -155,10 +181,35 @@ void MainWindow::bowStop()
 {
     m_midiSink->bowEnd();
 }
-void MainWindow::changeNoteKey(int _angle)
+
+void MainWindow::changeNoteParameter(float _velo, float _asc)
 {
-    if(_angle > 0)
-        m_midiSink->changeKey(_angle*10);
+    int velocity = qAbs(qRound(_velo * 400));
+
+    int num = speedControlerNumSpin->value();
+    speedControlerValueSpin->setValue(velocity);
+    m_midiSink->controlChange(num,  velocity > 255 ? 255 : velocity );
+}
+
+
+
+void MainWindow::changeNoteKey(int angle)
+{
+    if(angle > 40)
+        m_midiSink->changeKey(76);
+    else if(angle > 28)
+        m_midiSink->changeKey(69);
+    else if(angle > 16)
+        m_midiSink->changeKey(62);
+    else if(angle > 0)
+        m_midiSink->changeKey(55);
+
+}
+void MainWindow::sendTestControlParameter()
+{
+    int num = speedControlerNumSpin->value();
+    int value = speedControlerValueSpin->value();
+    m_midiSink->controlChange(num, value);
 }
 
 void MainWindow::connectMidi(QListWidgetItem* item)

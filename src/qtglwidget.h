@@ -62,6 +62,7 @@ public slots:
 signals:
     void upBowStart(float velocity, float acceleration);
     void downBowStart(float velocity, float acceleration);
+    void bowing(float velocity, float acceleration);
     void bowStop();
     void angleChange(int angle);
 

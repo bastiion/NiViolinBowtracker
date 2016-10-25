@@ -112,7 +112,7 @@ void QtGLWidget::paintEvent(QPaintEvent *_event) {
     if(m_cameraImage != NULL) {
         painter.drawImage(0,0,*m_cameraImage);
         if(arco != NULL) {
-            painter.setPen(Qt::yellow);
+            painter.setPen(Qt::green);
             painter.drawEllipse(QRect((m_kinect->getHandPos()), QSize(10,10)));
             painter.setPen(bowPen);
             painter.drawLine(* arco->line);
@@ -127,6 +127,9 @@ void QtGLWidget::paintEvent(QPaintEvent *_event) {
         if(!velocityHistory.isEmpty()) {
             painter.drawText(QPoint(50,80), tr("Bow Speed: ") + QString::number(velocityHistory.last()->velocityPixPerMS) + tr(" px/ms"));
             painter.drawText(QPoint(50,100), tr("Bow Accelaration: ") + QString::number(velocityHistory.last()->accelerationPixPerMS2) + tr(" px/m²"));
+            if(arco != NULL) {
+                painter.drawText(QPoint(50,120), tr("Bow Angle: ") + QString::number(arco->degAngle) + tr(" deg"));
+            }
         }
         
 
@@ -151,6 +154,8 @@ void QtGLWidget::changeBowState(BowState _state, ArcoVelocity* _velocity)
                 emit downBowStart(_velocity->velocityPixPerMS, _velocity->accelerationPixPerMS2);
                 break;
         }
+    } else {
+        emit bowing(_velocity->velocityPixPerMS, _velocity->accelerationPixPerMS2);
     }
 }
 
@@ -165,7 +170,8 @@ bool QtGLWidget::calculateArcoProperties()
         return false;
 
     if(qAbs(arcBuf.last()->degAngle - angle) > 1) {
-        emit angleChange(qRound(arcBuf.last()->degAngle));
+        angle = qRound(arcBuf.last()->degAngle);
+        emit angleChange(angle);
     }
 
     if(arcBuf.last()->timestamp.msecsTo(QTime::currentTime()) > 1000) {
